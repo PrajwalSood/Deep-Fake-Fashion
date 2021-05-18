@@ -57,7 +57,7 @@ enc = {}
 
 for i in range(0,47):
     if i == 0:
-        enc.update({i:np.array([0,0,0], dtype = 'uint8')})
+        enc.update({i:np.array([255,255,255], dtype = 'uint8')})
     else:
         
         enc.update({i:np.array([r.randint(0,255),r.randint(0,255),r.randint(0,255)], dtype = 'uint8')})

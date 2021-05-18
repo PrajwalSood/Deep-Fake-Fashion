@@ -136,3 +136,5 @@ mask_rcnn_coco.h5
 mrcnn/
 
 root/
+
+outputs/

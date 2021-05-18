@@ -35,6 +35,9 @@ import keras
 import tensorflow as tf
 import math
 import random
+from keras import backend as K
+
+
 
 # Set some parameters
 IMG_WIDTH = 256
@@ -72,7 +75,7 @@ def LoadData( frameObj = None, imgPath = None, maskPath = None, shape = 256):
     
     ## generating mask names
     for mem in imgNames:
-        maskNames.append(re.sub('\.jpg', '.png', mem))
+        maskNames.append(re.sub('\.jpg', '.jpg', 'm_'+mem))
     
     imgAddr = imgPath + '/'
     maskAddr = maskPath + '/'
@@ -96,8 +99,8 @@ def LoadData( frameObj = None, imgPath = None, maskPath = None, shape = 256):
     return frameObj
         
     
-train = LoadData( train, imgPath = 'datasets/images', 
-                        maskPath = 'datasets/labels/pixel_level_labels_colored'
+train = LoadData( train, imgPath = '.data/img', 
+                        maskPath = '.data/masks'
                          , shape = 256)
 
 # Check if training data looks all right
@@ -109,18 +112,25 @@ plt.show()
 
 #%%
 
-# Define IoU metric
-def mean_iou(y_true, y_pred):
-    prec = []
-    for t in np.arange(0.5, 1.0, 0.05):
-        y_pred = tf.cast(y_pred, tf.int32)
-        y_pred_ = y_pred > t
-        score, up_opt = tf.metrics.mean_iou(y_true, y_pred_, 2)
-        K.get_session().run(tf.local_variables_initializer())
-        with tf.control_dependencies([up_opt]):
-            score = tf.identity(score)
-        prec.append(score)
-    return K.mean(K.stack(prec), axis=0)
+def iou(y_true, y_pred, smooth=1):
+  intersection = K.sum(K.abs(y_true * y_pred), axis=[1,2,3])
+  union = K.sum(y_true,[1,2,3])+K.sum(y_pred,[1,2,3])-intersection
+  iou = K.mean((intersection + smooth) / (union + smooth), axis=0)
+  return iou
+
+def dice_coef(y_true, y_pred, smooth=1):
+    """
+    Dice = (2*|X & Y|)/ (|X|+ |Y|)
+         =  2*sum(|A*B|)/(sum(A^2)+sum(B^2))
+    ref: https://arxiv.org/pdf/1606.04797v1.pdf
+    """
+    y_pred = tf.cast(y_pred, tf.float32)
+    y_true = tf.cast(y_true, tf.float32)
+    intersection = K.sum(K.abs(y_true * y_pred), axis=-1)
+    return (2. * intersection + smooth) / (K.sum(K.square(y_true),-1) + K.sum(K.square(y_pred),-1) + smooth)
+
+def dice_coef_loss(y_true, y_pred):
+    return 1-dice_coef(y_true, y_pred)
 
 inputs = Input((IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS))
 s = Lambda(lambda x: x / 255) (inputs)
@@ -184,8 +194,7 @@ optimizer = keras.optimizers.Adam(learning_rate=lr_schedule)
 
 
 
-model.compile(optimizer=optimizer, loss='mean_absolute_error', metrics=['acc'])
-model.load_weights('tf_unet_mod.h5')
+model.compile(optimizer=optimizer, loss=dice_coef_loss, metrics=[iou]) # , tf.keras.metrics.MeanIoU(num_classes=256)
 model.summary()
 
 #%%
@@ -226,7 +235,7 @@ class DisplayCallback(tf.keras.callbacks.Callback):
     Plotter(actuals, Prediction, masks)
     print ('\nSample Prediction after epoch {}\n'.format(epoch+1))
 
-earlystopper = EarlyStopping(patience=5, verbose=1)
+earlystopper = EarlyStopping(patience=10, verbose=1)
 checkpointer = ModelCheckpoint('model--1-unet.h5', verbose=1, save_best_only=True)
 results = model.fit(np.array(train['img']),
                     np.array(train['mask']),
