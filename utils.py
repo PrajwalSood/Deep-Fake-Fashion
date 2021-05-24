@@ -72,3 +72,51 @@ def crop_by_id(img, masks, processing):
     res[...,1] = np.where(masks[:,:,processing], img[:,:,1], masks[:,:,processing])
     res[...,2] = np.where(masks[:,:,processing], img[:,:,2], masks[:,:,processing])
     return res
+
+def rgb_to_hsv(r, g, b):
+    r, g, b = r/255.0, g/255.0, b/255.0
+    mx = max(r, g, b)
+    mn = min(r, g, b)
+    df = mx-mn
+    if mx == mn:
+        h = 0
+    elif mx == r:
+        h = (60 * ((g-b)/df) + 360) % 360
+    elif mx == g:
+        h = (60 * ((b-r)/df) + 120) % 360
+    elif mx == b:
+        h = (60 * ((r-g)/df) + 240) % 360
+    if mx == 0:
+        s = 0
+    else:
+        s = (df/mx)*100
+    v = mx*100
+    return h, s, v
+
+def convert_color(img, res, rgb, IMAGE_SIZE = 512):
+    hsv_image = cv2.cvtColor(res, cv2.COLOR_BGR2HSV)
+    h,s,v = cv2.split(hsv_image)
+    
+    rgb = [255,69,0]
+    
+    #Get the resultant HSV values from RGB
+    aa=rgb_to_hsv(rgb[0],rgb[1],rgb[2])
+        
+    #HUE adjustments
+    hsv_image[:,:,0] = (np.ones(shape=(IMAGE_SIZE,IMAGE_SIZE))[:,:])*int(aa[0]//2) # Changes the H value
+    
+    
+    #SATURATION adjustments
+    #hsv_image[:,:,1] = np.ones(shape=(IMAGE_SIZE,IMAGE_SIZE))*int(aa[1]) # Changes the S value
+      
+    
+    #VALUE adjustments
+    #value_new = (max(rgb)//255)*100    
+    #hsv_image[:,:] = np.where(mask_image==m_rgb,value_new,hsv_image[:,:])
+    
+    #Change the color of image to BGR from HSV
+    bgr_image= cv2.cvtColor(hsv_image, cv2.COLOR_HSV2BGR) 
+    
+    #combine modified and orignal image
+    final_image=cv2.addWeighted(img,0,bgr_image,1,0)
+    return final_image

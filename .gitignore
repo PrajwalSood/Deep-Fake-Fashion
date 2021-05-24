@@ -142,3 +142,7 @@ outputs/
 mask_rcnn_fashion_0003_c.h5
 
 mask_rcnn_fashion_0011.h5
+
+sam*.jpg
+
+*.jpg

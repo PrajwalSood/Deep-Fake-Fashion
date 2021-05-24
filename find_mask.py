@@ -87,4 +87,3 @@ def masker_np(img):
     r = mask[0]
     
     return img, r
-
