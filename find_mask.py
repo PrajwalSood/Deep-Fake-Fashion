@@ -79,4 +79,12 @@ def masker(img_path):
     
     return img, r
 
+def masker_np(img):
+
+    img = cv2.resize(img, (IMAGE_SIZE, IMAGE_SIZE))
+    
+    mask = model.detect([img])
+    r = mask[0]
+    
+    return img, r
 
