@@ -97,7 +97,6 @@ def convert_color(img, res, rgb, IMAGE_SIZE = 512):
     hsv_image = cv2.cvtColor(res, cv2.COLOR_BGR2HSV)
     h,s,v = cv2.split(hsv_image)
     
-    rgb = [255,69,0]
     
     #Get the resultant HSV values from RGB
     aa=rgb_to_hsv(rgb[0],rgb[1],rgb[2])

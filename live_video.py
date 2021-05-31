@@ -31,8 +31,11 @@ while(True):
         masks, rois = convert_to_mask(img, r)
         idx = list(r['class_ids']).index(2)
         res = crop_by_id(img, masks, idx)
-        final_image = convert_color(img, res, [255,0,0])
-        final_image = cv2.addWeighted(img,1,final_image,1,0)
+        final_img = convert_color(img, res, [255,165,0])
+        img[:,:,0] = np.where(masks[:,:,idx], np.zeros((512,512)), img[:,:,0])
+        img[:,:,1] = np.where(masks[:,:,idx], np.zeros((512,512)), img[:,:,1])
+        img[:,:,2] = np.where(masks[:,:,idx], np.zeros((512,512)), img[:,:,2])
+        final_image = cv2.addWeighted(img,1,final_img,1,0)
         cv2.imshow('frame', final_image)
     except:
         cv2.imshow('frame', cv2.resize(frame, (512,512)))

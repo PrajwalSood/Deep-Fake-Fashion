@@ -23,7 +23,8 @@ img, r = masker('s4.jpg')
 
 masks, rois = convert_to_mask(img, r)
 
-    
+#rgb = list(map(int, input("Enter rgb").split()))    
+rgb = [0,255,0]
 for idx, i in enumerate(r['class_ids']):
     print(idx, i, label_names[i-2])
 
@@ -39,16 +40,28 @@ while True:
     res = crop_by_id(img, masks, idx)
     
     # display(res)
+    final_image = img.copy()
+    final_image[:,:,0] = np.where(masks[:,:,idx], np.zeros((512,512)), final_image[:,:,0])
+    final_image[:,:,1] = np.where(masks[:,:,idx], np.zeros((512,512)), final_image[:,:,1])
+    final_image[:,:,2] = np.where(masks[:,:,idx], np.zeros((512,512)), final_image[:,:,2])
     
-    final_image = convert_color(img, res, [255,0,0])
-    images.append(final_image)
+    final_img = convert_color(img, res, rgb)
+    images.append(final_img)
     print('enter q to break, else enter index \n')
-    
+'''
 final_image = img.copy()
+final_image[:,:,0] = np.where(masks[:,:,4], np.zeros((512,512)), final_image[:,:,0])
+final_image[:,:,1] = np.where(masks[:,:,4], np.zeros((512,512)), final_image[:,:,1])
+final_image[:,:,2] = np.where(masks[:,:,4], np.zeros((512,512)), final_image[:,:,2])
+
+display(final_image)
+'''
+
 l = len(images)
 
 if l ==1:
     for i in images:
+        
         final_image = cv2.addWeighted(final_image,1,i,1,0)
 else:
     for i in images:
@@ -57,3 +70,5 @@ else:
 comp = cv2.hconcat([img, final_image])
 display(comp)
 cv2.imwrite('test.jpg', comp)
+
+#%%
