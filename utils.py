@@ -8,6 +8,8 @@ Created on Mon May 24 18:10:09 2021
 import numpy as np
 import itertools
 import cv2
+import PIL
+import tensorflow as tf
 
 def to_rle(bits):
     rle = []
@@ -106,7 +108,7 @@ def convert_color(img, res, rgb, IMAGE_SIZE = 512):
     
     
     #SATURATION adjustments
-    #hsv_image[:,:,1] = np.ones(shape=(IMAGE_SIZE,IMAGE_SIZE))*int(aa[1]) # Changes the S value
+    hsv_image[:,:,1] = np.ones(shape=(IMAGE_SIZE,IMAGE_SIZE))*int(aa[1]) # Changes the S value
       
     
     #VALUE adjustments
@@ -119,3 +121,28 @@ def convert_color(img, res, rgb, IMAGE_SIZE = 512):
     #combine modified and orignal image
     final_image=cv2.addWeighted(img,0,bgr_image,1,0)
     return final_image
+
+def tensor_to_image(tensor):
+    tensor = tensor*255
+    tensor = np.array(tensor)
+    if np.ndim(tensor)>3:
+        assert tensor.shape[0] == 1
+        tensor = tensor[0]
+    return PIL.Image.fromarray(tensor)
+
+@tf.function
+def load_img(path_to_img, dim = 512):
+  max_dim = dim
+  img = tf.io.read_file(path_to_img)
+  img = tf.image.decode_image(img, channels=3)
+  img = tf.image.convert_image_dtype(img, tf.float32)
+
+  shape = tf.cast(tf.shape(img)[:-1], tf.float32)
+  long_dim = max(shape)
+  scale = max_dim / long_dim
+
+  new_shape = tf.cast(shape * scale, tf.int32)
+
+  img = tf.image.resize(img, new_shape)
+  img = img[tf.newaxis, :]
+  return img

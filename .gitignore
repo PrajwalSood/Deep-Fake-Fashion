@@ -145,4 +145,4 @@ mask_rcnn_fashion_0011.h5
 
 sam*.jpg
 
-*.jpg
+./*.jpg
