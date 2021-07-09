@@ -23,7 +23,7 @@ NUM_CATS = 46
 
 class FashionConfig(Config):
     NAME = "fashion"
-    NUM_CLASSES = NUM_CATS + 1 # +1 สำหรับคลาส background
+    NUM_CLASSES = NUM_CATS + 1
     
     GPU_COUNT = 1
     IMAGES_PER_GPU = 4
@@ -37,8 +37,6 @@ class FashionConfig(Config):
     RPN_ANCHOR_SCALES = (16, 32, 64, 128, 256)
     TRAIN_ROIS_PER_IMAGE = 100
     
-    # เนื่องจาก Kaggle จำกัดเวลาในการรัน kernel ไว้ 9 ชั่วโมง 
-    # เราจึงกำหนดค่า STEPS_PER_EPOCH และ VALIDATION_STEPS ให้รันทันในเวลานี้ครับ
     STEPS_PER_EPOCH = 5500
     VALIDATION_STEPS = 100
     
